@@ -66,9 +66,16 @@ Final results look as follows:
     {'id': 4, 'n': 0, 'x': 4, 'y': 2}
     {'id': 5, 'n': 1, 'x': 5, 'y': 5}
 
-Where:
+The added keys indicate the order of execution of specific operations within
+the `IFCA` transform chain.  The meaning is as follows:
 
 - `id` is exactly the same as in input,
-- `n` denotes item parity,
+- `n` denotes item parity (even items have `n=0`) - a visual helper to see
+  which data points were delayed,
 - `x` is the order of the execution of the first function,
 - `y` is the order of the execution of the second function.
+
+The test indicates that the chained functions are executed immediately after
+each other (as soon as the item is processed by one function it starts being
+procesed by the next function), while the read order exactly follows the write
+order.

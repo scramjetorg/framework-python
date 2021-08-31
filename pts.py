@@ -17,7 +17,7 @@ SLOMO_FACTOR = float(sys.argv[1]) if len(sys.argv) > 1 else 1
 
 # Transformation functions and utilities
 
-x, y = 0, 0
+x, y, z = 0, 0, 0
 
 async def async_add_x(chunk):
     global x
@@ -35,6 +35,12 @@ def add_y(chunk):
     y += 1
     return chunk
 
+def add_z(chunk):
+    global z
+    chunk['z'] = z
+    z += 1
+    return chunk
+
 # Test cases
 
 n = 6
@@ -44,6 +50,7 @@ MAX_PARALLEL = 4
 async def PTS(input_data):
     p = pyfca.Pyfca(MAX_PARALLEL, async_add_x)
     p.add_transform(add_y)
+    p.add_transform(add_z)
 
     def write_next():
         return p.write(input_data.pop(0))
@@ -57,6 +64,8 @@ async def PTS(input_data):
     results = await asyncio.gather(*reads)
 
     pprint(results)
+    for r in results:
+        assert r['y'] == r['z']
     results.sort(key=lambda r: r['y'])
     processing_order = [r['id'] for r in results]
     assert processing_order == [0, 2, 4, 1, 3, 5]
