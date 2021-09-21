@@ -1,0 +1,12 @@
+rm -f INPUT OUTPUT LOG EXPECTED
+mkfifo INPUT
+./spammer.sh > INPUT &
+python3 stream-from-pipe.py INPUT OUTPUT
+
+for x in $(cat LOG); do
+    if (( x % 2 == 0 )); then
+        echo $(( x * x )) >> EXPECTED
+    fi
+done
+
+diff EXPECTED OUTPUT && echo Correct results. || echo Incorrect results.
