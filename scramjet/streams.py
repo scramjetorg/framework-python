@@ -49,6 +49,15 @@ class DataStream():
                 break
             yield chunk
 
+    def __mod__(self, func):
+        return self.filter(func)
+
+    def __or__(self, func):
+        return self.map(func)
+
+    async def __gt__(self, result):
+        return await self.to_list(result)
+
     def _uncork(self):
         if not self._ready_to_start.done():
             self._ready_to_start.set_result(True)
@@ -334,11 +343,12 @@ class DataStream():
         return target
 
 
-    async def to_list(self):
+    async def to_list(self, result=None):
         """Write all resulting stream chunks into a list."""
         self._mark_consumed()
         self._uncork()
-        result = []
+        if result is None:
+            result = []
         log(self, f'sink: {repr(result)}')
         chunk = await self._pyfca.read()
         while chunk is not None:
