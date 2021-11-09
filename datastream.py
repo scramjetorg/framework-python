@@ -29,17 +29,23 @@ class DataStream():
                 self.upstream._uncork()
 
     @staticmethod
-    def from_iterable(iterable, max_parallel=64):
-        stream = DataStream(max_parallel)
+    def from_iterable(iterable, max_parallel=64, name="datastream"):
+        stream = DataStream(max_parallel, name=name)
         async def consume():
             log(stream, f'waiting for uncork: {stream.ready_to_start}')
             await stream.ready_to_start
-            for item in iterable:
-                log(stream, f'put: {tr(item)}')
-                await stream.pyfca.write(item)
+            if hasattr(iterable, '__iter__'):
+                for item in iterable:
+                    log(stream, f'put: {tr(item)}')
+                    await stream.pyfca.write(item)
+            elif hasattr(iterable, '__aiter__'):
+                async for item in iterable:
+                    log(stream, f'put: {tr(item)}')
+                    await stream.pyfca.write(item)
+            else:
+                raise TypeError
             log(stream, f'ending pyfca {stream.pyfca}')
             stream.pyfca.end()
-
         # run in background, as it will involve waiting for
         # processing elements
         asyncio.create_task(consume())
@@ -238,6 +244,16 @@ class DataStream():
                     break
         asyncio.create_task(consume(), name='into-consumer')
         return into
+
+    async def __aiter__(self):
+        log(self, f'sink: async iteration')
+        self._uncork()
+        while True:
+            chunk = await self.pyfca.read()
+            log(self, f'got: {tr(chunk)}')
+            if chunk is None:
+                break
+            yield chunk
 
     async def reduce(self, func, initial=None):
         self._uncork()
