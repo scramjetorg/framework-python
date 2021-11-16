@@ -32,3 +32,19 @@ async def test_pipe():
     s1.pipe(s2)
     result = await s2.to_list()
     assert result == [0, 2, 4, 6, 8, 10, 12, 14]
+
+def parse_and_square_even_dollars(stream):
+    return (
+        stream
+            .map(lambda s: int(s))
+            .filter(lambda x: x % 2 == 0)
+            .map(lambda x: x**2)
+            .map(lambda x: "$" + str(x))
+        )
+
+@pytest.mark.asyncio
+async def test_use():
+    data = ['8', '25', '3', '14', '20', '9', '13', '16']
+    stream = DataStream.from_iterable(data, max_parallel=4)
+    result = await stream.use(parse_and_square_even_dollars).to_list()
+    assert result == ['$64', '$196', '$400', '$256']

@@ -76,6 +76,9 @@ class DataStream():
     def end(self):
         self.pyfca.end()
 
+    def use(self, func):
+        return func(self)
+
     def flatmap(self, func, *args):
         new_stream = DataStream(max_parallel=self.pyfca.max_parallel, name=f'{self.name}+fm')
         async def consume():
@@ -187,7 +190,7 @@ class DataStream():
     async def to_list(self):
         self._uncork()
         result = []
-        log(self, f'sink: {repr(result)}')
+        log(self, f'{blue}sink:{reset} {repr(result)}')
         chunk = await self.pyfca.read()
         while chunk is not None:
             log(self, f'got: {tr(chunk)}')
