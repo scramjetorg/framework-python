@@ -206,6 +206,36 @@ class DataStream():
                 f.write(chunk)
                 chunk = await self.pyfca.read()
 
+    def pipe(self, new_stream):
+        async def consume():
+            self._uncork()
+            log(self, f'sink: {repr(new_stream)}')
+            while True:
+                chunk = await self.pyfca.read()
+                log(self, f'got: {tr(chunk)}')
+                if chunk is None:
+                    break
+                log(new_stream, f'put: {tr(chunk)}')
+                await new_stream.pyfca.write(chunk)
+            log(new_stream, f'ending pyfca {new_stream.pyfca}')
+            new_stream.pyfca.end()
+        asyncio.create_task(consume(), name='pipe-consumer')
+        return new_stream
+
+    def into(self, func, into):
+        async def consume():
+            self._uncork()
+            log(self, f'sink: {repr(into)}')
+            while True:
+                chunk = await self.pyfca.read()
+                log(self, f'got: {tr(chunk)}')
+                log(self, f'put: {tr(chunk)}')
+                await func(into, chunk)
+                if chunk is None:
+                    break
+        asyncio.create_task(consume(), name='into-consumer')
+        return into
+
     async def reduce(self, func, initial=None):
         self._uncork()
         if initial is None:
