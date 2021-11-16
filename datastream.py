@@ -3,6 +3,7 @@ import asyncio
 from ansi_color_codes import *
 from os import environ
 import utils
+import aiofiles
 
 DEBUG = 'DATASTREAM_DEBUG' in environ or 'SCRAMJET_DEBUG' in environ
 tr = utils.print_trimmed
@@ -10,6 +11,12 @@ tr = utils.print_trimmed
 def log(stream, *args):
     if DEBUG:
         utils.LogWithTimer.log(f"{grey}{stream.name}{reset}", *args)
+
+async def async_reader(file, max_chunk_size=-1):
+    chunk = await file.read1(max_chunk_size)
+    while chunk != b'':
+        yield chunk
+        chunk = await file.read1(max_chunk_size)
 
 
 class DataStream():
@@ -97,11 +104,12 @@ class DataStream():
         async def consume():
             log(stream, f'waiting for uncork: {stream.ready_to_start}')
             await stream.ready_to_start
-            with open(in_file, 'rb') as f:
+            async with aiofiles.open(in_file, "rb") as f:
                 log(stream, f'reading from {f}')
-                for chunk in iter(lambda: f.read1(max_chunk_size), b''):
+                async for chunk in async_reader(f, max_chunk_size):
                     log(stream, f'put: {tr(chunk)}')
                     await stream.pyfca.write(chunk)
+                    await asyncio.sleep(0)
                 log(stream, f'ending pyfca {stream.pyfca}')
                 stream.pyfca.end()
 
@@ -241,7 +249,7 @@ class DataStream():
             chunk = await self.pyfca.read()
         return result
 
-    async def to_file(self, out_file):
+    async def to_file(self, out_file, encoding='utf-8'):
         self._uncork()
         log(self, f'sink: {repr(out_file)}')
         with open(out_file, 'wb') as f:
@@ -249,7 +257,10 @@ class DataStream():
             chunk = await self.pyfca.read()
             while chunk is not None:
                 log(self, f'got: {tr(chunk)}')
+                if (isinstance(chunk, str)):
+                    chunk = chunk.encode(encoding)
                 f.write(chunk)
+                f.flush()
                 chunk = await self.pyfca.read()
 
     def pipe(self, new_stream):
