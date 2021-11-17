@@ -71,6 +71,32 @@ class DataStream():
         return stream
 
     @staticmethod
+    def from_iostream(f, max_parallel=64, max_chunk_size=-1):
+        stream = DataStream(max_parallel)
+
+        def reader(file, max_chunk_size=-1):
+            chunk = file.read1(max_chunk_size)
+            while chunk != b'':
+                yield chunk
+                chunk = file.read1(max_chunk_size)
+
+        async def consume():
+            log(stream, f'waiting for uncork: {stream.ready_to_start}')
+            await stream.ready_to_start
+            log(stream, f'reading from {f}')
+            for chunk in reader(f.buffer, max_chunk_size):
+                log(stream, f'put: {tr(chunk)}')
+                await stream.pyfca.write(chunk)
+            log(stream, f'ending pyfca {stream.pyfca}')
+            stream.pyfca.end()
+
+        # run in background, as it will involve waiting for
+        # processing elements
+        asyncio.create_task(consume())
+        log(stream, f'source: {repr(f)}')
+        return stream
+
+    @staticmethod
     def from_file(in_file, max_parallel=64, max_chunk_size=-1):
         stream = DataStream(max_parallel)
         async def consume():

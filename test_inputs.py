@@ -36,7 +36,7 @@ run(read_from_path)
 
 async def read_from_file_object():
     with open(LARGE_FILE) as f:
-        s = DataStream.from_iterable(f)
+        s = DataStream.from_iostream(f)
         return await s.reduce(analyze_chunks, (0, set(), 0))
 run(read_from_file_object)
 
