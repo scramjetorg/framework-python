@@ -1,4 +1,6 @@
 import asyncio
+from test.large_test_files import path_to_text_without_newlines
+LARGE_FILE = path_to_text_without_newlines
 
 async def serve_small_data(reader, writer):
     data = b'test'
@@ -10,7 +12,7 @@ async def serve_small_data(reader, writer):
     writer.close()
 
 async def serve_big_file(reader, writer):
-    with open('/home/jan/inbox/large-continuous-text-file.txt', 'rb') as f:
+    with open(LARGE_FILE, 'rb') as f:
         print(f'reading from {f}')
         data = f.read()
         print(f"Sending {len(data)} bytes...")

@@ -41,7 +41,10 @@ async def read_from_file_object():
 run(read_from_file_object)
 
 async def read_from_tcp_socket():
-    pass
+    reader, writer = await asyncio.open_connection('127.0.0.1', 8888)
+    s = DataStream.from_socket(reader)
+    return await s.reduce(analyze_chunks, (0, set(), 0))
+run(read_from_tcp_socket)
 
 async def read_from_another_stream():
     s = DataStream.from_iterable(DataStream.from_file(LARGE_FILE))
