@@ -42,7 +42,7 @@ from test import large_test_files
 #         types.add(type(chunk))
 #     print(f'Read {count} chunk(s) of type(s) {types}, {length} bytes in total.')
 
-data = ['f', 'oo', '\n', 'bar', ' ', 'baz\nqux']
+data = ['f', 'oo', '\n', 'bar baz', ' ', 'bax\nqux']
 path = 'test_pipe'
 
 def write_to_pipe():
