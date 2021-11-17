@@ -10,10 +10,7 @@ from test.large_test_files import path_to_text_without_newlines
 
 log = utils.LogWithTimer.log
 maxp = 4
-
-# transformacje:
-# - na koniec liczyć chunki/sumę bajtów?
-# - coś takiego żeby było przetwarzanie stringów, a nie bytesów. Najprościej doklejać stringa.
+LARGE_FILE = path_to_text_without_newlines
 
 async def echo(x):
     log(f"{yellow}Processing:{reset} {repr(x)}")
@@ -21,52 +18,53 @@ async def echo(x):
 
 def run(coro):
     print(f"\n{strong}Running {coro.__name__}:{reset}")
-    asyncio.run(coro())
+    res = asyncio.run(coro())
+    print(f'Read {res[0]} chunk(s) of type(s) {res[1]}, {res[2]} bytes in total.')
 
-def check_if_string(chunk):
-    if not isinstance(chunk, str):
-        print(f'Got {type(chunk)}, not str!')
-    return chunk
+def analyze_chunks(accumulator, chunk):
+    chunk_count, chunk_types, combined_length = accumulator
+    chunk_types.add(type(chunk))
+    return (chunk_count + 1, chunk_types, combined_length + len(chunk))
 
-def count_and_sum(accumulator, item):
-    chunk_count, combined_length = accumulator
-    return (chunk_count + 1, combined_length + len(item))
 
-async def read_large_file():
-    FILE = path_to_text_without_newlines
-    res = await DataStream.from_file(FILE).map(check_if_string).reduce(count_and_sum, (0, 0))
-    print(f'Read {res[0]} chunks, {res[1]} bytes in total.')
+# default reading (bulk)
 
-run(read_large_file)
+async def read_from_path():
+    s = DataStream.from_file(LARGE_FILE)
+    return await s.reduce(analyze_chunks, (0, set(), 0))
+run(read_from_path)
 
+async def read_from_file_object():
+    with open(LARGE_FILE) as f:
+        s = DataStream.from_iterable(f)
+        return await s.reduce(analyze_chunks, (0, set(), 0))
+run(read_from_file_object)
+
+async def read_from_tcp_socket():
+    pass
+
+async def read_from_another_stream():
+    s = DataStream.from_iterable(DataStream.from_file(LARGE_FILE))
+    return await s.reduce(analyze_chunks, (0, set(), 0))
+run(read_from_another_stream)
+
+
+# async reading - should be non-blocking and immediate
+
+
+# changing buffering (chunk size, reading lines)
+
+
+### other sources and special cases
+
+async def read_from_unix_socket():
+    pass
+
+async def read_from_websocket():
+    pass
 
 async def read_from_stdin():
     pass
 
-
 async def read_from_unix_pipe():
-    pass
-
-
-async def read_from_large_file_object():
-    pass
-
-
-async def read_from_async_fifo():
-    pass
-
-
-async def read_from_sync_iterable():
-    pass
-
-
-async def read_with_changed_chunk_size():
-    pass
-
-
-async def read_large_data_from_tcp():
-    pass
-
-
-async def read_from_another_stream():
     pass
