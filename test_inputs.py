@@ -27,21 +27,80 @@ def analyze_chunks(accumulator, chunk):
     return (chunk_count + 1, chunk_types, combined_length + len(chunk))
 
 
+
 # default reading (continuous file) - should split into even chunks
 
+# async def read_from_path():
+#     s = DataStream.from_file(LARGE_FILE)
+#     return await s.reduce(analyze_chunks, (0, set(), 0))
+# run(read_from_path)
+#
+# async def read_from_file_object():
+#     with open(LARGE_FILE) as f:
+#         s = DataStream.from_iostream(f)
+#         return await s.reduce(analyze_chunks, (0, set(), 0))
+# run(read_from_file_object)
+#
+# def serve_with_netcat():
+#     os.system(f'nc -lN localhost 8888 < {LARGE_FILE}')
+#
+# server = Process(target=serve_with_netcat)
+# server.start()
+#
+# async def read_from_tcp_socket():
+#     reader, writer = await asyncio.open_connection('localhost', 8888)
+#     s = DataStream.from_socket(reader)
+#     result = await s.reduce(analyze_chunks, (0, set(), 0))
+#     writer.close()
+#     return result
+# run(read_from_tcp_socket)
+#
+# server.join()
+#
+# async def read_from_another_stream():
+#     s = DataStream.from_iterable(DataStream.from_file(LARGE_FILE))
+#     return await s.reduce(analyze_chunks, (0, set(), 0))
+# run(read_from_another_stream)
+#
+
+
+# async reading - should be non-blocking and immediate
+
+PIPE = 'test_pipe'
+try:
+    os.remove(PIPE)
+except FileNotFoundError:
+    pass
+os.mkfifo(PIPE)
+
+def write_to_pipe():
+    with open(PIPE, 'w') as pipe:
+        pipe.write('a\nb\nc\n')
+        pipe.flush()
+        time.sleep(1)
+        pipe.write('d\ne\nf\n')
+        pipe.flush()
+
 async def read_from_path():
-    s = DataStream.from_file(LARGE_FILE)
+    write = Process(target=write_to_pipe)
+    write.start()
+    s = DataStream.from_file(PIPE)
     return await s.reduce(analyze_chunks, (0, set(), 0))
+    write.join()
 run(read_from_path)
 
 async def read_from_file_object():
-    with open(LARGE_FILE) as f:
+    write = Process(target=write_to_pipe)
+    write.start()
+    with open(PIPE) as f:
         s = DataStream.from_iostream(f)
         return await s.reduce(analyze_chunks, (0, set(), 0))
+    write.join()
 run(read_from_file_object)
 
 def serve_with_netcat():
-    os.system(f'nc -lN localhost 8888 < {LARGE_FILE}')
+    os.system(f"(echo a; echo b; echo c; sleep 1; echo d; echo e; echo f) | nc -lN localhost 8888")
+    # os.system(f"(echo -e 'a\nb\nc\n'; sleep 1; echo -e 'd\ne\nf\n') | nc -lN localhost 8888")
 
 server = Process(target=serve_with_netcat)
 server.start()
@@ -56,13 +115,6 @@ run(read_from_tcp_socket)
 
 server.join()
 
-async def read_from_another_stream():
-    s = DataStream.from_iterable(DataStream.from_file(LARGE_FILE))
-    return await s.reduce(analyze_chunks, (0, set(), 0))
-run(read_from_another_stream)
-
-
-# async reading - should be non-blocking and immediate
 
 
 # changing buffering (chunk size, reading lines)
