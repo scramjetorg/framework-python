@@ -65,13 +65,13 @@ with open(path) as file:
 write.join()
 
 
-# Binary files can walk around this
+# Binary files can walk arou nd this
 print("\nReading from binary file")
 write = Process(target=write_to_pipe)
 write.start()
 
 with open(path, 'rb') as file:
-    for chunk in iter(lambda: file.read1(), b''):
+    for chunk in iter(lambda: file.read(), b''):
         print("Got chunk:", repr(chunk))
 
 write.join()
@@ -83,7 +83,7 @@ write = Process(target=write_to_pipe)
 write.start()
 
 with open(path) as file:
-    for chunk in iter(lambda: file.read(), ''):
+    for chunk in iter(lambda: file.read(4), ''):
         print("Got chunk:", repr(chunk))
 
 write.join()
@@ -100,3 +100,15 @@ with open(path) as file:
         print("Got chunk:", repr(chunk))
 
 write.join()
+
+# Binary files can walk around this
+print("\nno buffering, raw")
+write = Process(target=write_to_pipe)
+write.start()
+
+with open(path, 'rb', buffering=0) as file:
+    for chunk in iter(lambda: file.read(10), b''):
+        print("Got chunk:", repr(chunk))
+
+write.join()
+
