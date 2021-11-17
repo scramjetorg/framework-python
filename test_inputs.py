@@ -27,7 +27,7 @@ def analyze_chunks(accumulator, chunk):
     return (chunk_count + 1, chunk_types, combined_length + len(chunk))
 
 
-# default reading (bulk)
+# default reading (continuous file) - should split into even chunks
 
 async def read_from_path():
     s = DataStream.from_file(LARGE_FILE)

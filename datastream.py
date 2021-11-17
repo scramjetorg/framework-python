@@ -31,6 +31,7 @@ class DataStream():
     @staticmethod
     def from_iterable(iterable, max_parallel=64, name="datastream"):
         stream = DataStream(max_parallel, name=name)
+
         async def consume():
             log(stream, f'waiting for uncork: {stream.ready_to_start}')
             await stream.ready_to_start
@@ -46,59 +47,53 @@ class DataStream():
                 raise TypeError
             log(stream, f'ending pyfca {stream.pyfca}')
             stream.pyfca.end()
-        # run in background, as it will involve waiting for
-        # processing elements
+
         asyncio.create_task(consume())
         log(stream, f'source: {iterable}')
         return stream
 
     @staticmethod
-    def from_socket(reader, max_parallel=64, max_chunk_size=4096):
+    def from_socket(source, max_parallel=64, max_chunk_size=4096):
         stream = DataStream(max_parallel)
+
         async def consume():
             log(stream, f'waiting for uncork: {stream.ready_to_start}')
             await stream.ready_to_start
             while True:
-                chunk = await reader.read(4096)
+                chunk = await source.read(4096)
                 if not chunk:
                     break
                 log(stream, f'put: {tr(chunk)}')
                 await stream.pyfca.write(chunk)
             log(stream, f'ending pyfca {stream.pyfca}')
             stream.pyfca.end()
+
         asyncio.create_task(consume())
-        log(stream, f'source: {reader}')
+        log(stream, f'source: {source}')
         return stream
 
     @staticmethod
-    def from_iostream(f, max_parallel=64, max_chunk_size=-1):
+    def from_iostream(source, max_parallel=64, max_chunk_size=-1):
         stream = DataStream(max_parallel)
-
-        def reader(file, max_chunk_size=-1):
-            chunk = file.read1(max_chunk_size)
-            while chunk != b'':
-                yield chunk
-                chunk = file.read1(max_chunk_size)
 
         async def consume():
             log(stream, f'waiting for uncork: {stream.ready_to_start}')
             await stream.ready_to_start
-            log(stream, f'reading from {f}')
-            for chunk in reader(f.buffer, max_chunk_size):
+            log(stream, f'reading from {source}')
+            for chunk in iter(lambda: source.buffer.read1(max_chunk_size), b''):
                 log(stream, f'put: {tr(chunk)}')
                 await stream.pyfca.write(chunk)
             log(stream, f'ending pyfca {stream.pyfca}')
             stream.pyfca.end()
 
-        # run in background, as it will involve waiting for
-        # processing elements
         asyncio.create_task(consume())
-        log(stream, f'source: {repr(f)}')
+        log(stream, f'source: {repr(source)}')
         return stream
 
     @staticmethod
     def from_file(in_file, max_parallel=64, max_chunk_size=-1):
         stream = DataStream(max_parallel)
+
         async def consume():
             log(stream, f'waiting for uncork: {stream.ready_to_start}')
             await stream.ready_to_start
@@ -110,8 +105,6 @@ class DataStream():
                 log(stream, f'ending pyfca {stream.pyfca}')
                 stream.pyfca.end()
 
-        # run in background, as it will involve waiting for
-        # processing elements
         asyncio.create_task(consume())
         log(stream, f'source: {repr(in_file)}')
         return stream
