@@ -43,10 +43,11 @@ from test import large_test_files
 #     print(f'Read {count} chunk(s) of type(s) {types}, {length} bytes in total.')
 
 data = ['f', 'oo', '\n', 'bar baz', ' ', 'bax\nqux']
-path = 'test_pipe'
+pipe_path = 'test_pipe'
+regular_file = './sample_text_1.txt'
 
 def write_to_pipe():
-    with open(path, 'w') as pipe:
+    with open(pipe_path, 'w') as pipe:
         for chunk in data:
             time.sleep(0.01)
             print(f'{yellow}Write into pipe{reset}:', repr(chunk))
@@ -58,7 +59,7 @@ print("\nReading from text file")
 write = Process(target=write_to_pipe)
 write.start()
 
-with open(path) as file:
+with open(pipe_path) as file:
     for chunk in file:
         print("Got chunk:", repr(chunk))
 
@@ -70,7 +71,7 @@ print("\nReading from binary file")
 write = Process(target=write_to_pipe)
 write.start()
 
-with open(path, 'rb') as file:
+with open(pipe_path, 'rb') as file:
     for chunk in iter(lambda: file.read(), b''):
         print("Got chunk:", repr(chunk))
 
@@ -82,7 +83,7 @@ print("\nText file with read()")
 write = Process(target=write_to_pipe)
 write.start()
 
-with open(path) as file:
+with open(pipe_path) as file:
     for chunk in iter(lambda: file.read(4), ''):
         print("Got chunk:", repr(chunk))
 
@@ -94,7 +95,7 @@ print("\nText file with underlying buffer method swapped")
 write = Process(target=write_to_pipe)
 write.start()
 
-with open(path) as file:
+with open(pipe_path) as file:
     file.buffer.read = file.buffer.read1
     for chunk in iter(lambda: file.read(), ''):
         print("Got chunk:", repr(chunk))
@@ -106,9 +107,8 @@ print("\nno buffering, raw")
 write = Process(target=write_to_pipe)
 write.start()
 
-with open(path, 'rb', buffering=0) as file:
+with open(pipe_path, 'rb', buffering=0) as file:
     for chunk in iter(lambda: file.read(10), b''):
         print("Got chunk:", repr(chunk))
 
 write.join()
-
