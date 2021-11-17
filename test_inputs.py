@@ -18,6 +18,7 @@ async def echo(x):
 
 def run(coro):
     print(f"\n{strong}Running {coro.__name__}:{reset}")
+    utils.LogWithTimer.reset()
     res = asyncio.run(coro())
     print(f'Read {res[0]} chunk(s) of type(s) {res[1]}, {res[2]} bytes in total.')
 
@@ -66,6 +67,36 @@ def analyze_chunks(accumulator, chunk):
 
 # async reading - should be non-blocking and immediate
 
+def run(coro):
+    print(f"\n{strong}Running {coro.__name__}:{reset}")
+    utils.LogWithTimer.reset()
+    res = asyncio.run(coro())
+
+async def async_ordinal(x):
+    log(f'{yellow}ordinal start:{reset} {x}')
+    await asyncio.sleep(1)
+    result = ord(x.decode().upper()) - 64
+    log(f'{yellow}ordinal end:{reset} -> {result}')
+    return result
+
+
+def serve_with_netcat():
+    os.system(f"(echo a; echo b; echo c; sleep 1; echo d; echo e; echo f) | nc -lN localhost 8888")
+    # os.system(f"(echo -e 'a\nb\nc\n'; sleep 1; echo -e 'd\ne\nf\n') | nc -lN localhost 8888")
+
+server = Process(target=serve_with_netcat)
+server.start()
+
+async def read_from_tcp_socket():
+    reader, writer = await asyncio.open_connection('localhost', 8888)
+    s = DataStream.from_socket(reader, max_parallel=2)
+    result = await s.flatmap(lambda s: s.split()).map(async_ordinal).to_list()
+    writer.close()
+    return result
+run(read_from_tcp_socket)
+
+
+server.join()
 PIPE = 'test_pipe'
 try:
     os.remove(PIPE)
@@ -77,43 +108,30 @@ def write_to_pipe():
     with open(PIPE, 'w') as pipe:
         pipe.write('a\nb\nc\n')
         pipe.flush()
-        time.sleep(1)
+        time.sleep(3)
         pipe.write('d\ne\nf\n')
         pipe.flush()
+
 
 async def read_from_path():
     write = Process(target=write_to_pipe)
     write.start()
-    s = DataStream.from_file(PIPE)
-    return await s.reduce(analyze_chunks, (0, set(), 0))
+    s = DataStream.from_file(PIPE, max_parallel=2)
+    
+    return await s.flatmap(lambda s: s.split()).map(async_ordinal).to_list()
     write.join()
 run(read_from_path)
+
 
 async def read_from_file_object():
     write = Process(target=write_to_pipe)
     write.start()
     with open(PIPE) as f:
-        s = DataStream.from_iostream(f)
-        return await s.reduce(analyze_chunks, (0, set(), 0))
+        s = DataStream.from_iostream(f, max_parallel=2)
+        return await s.flatmap(lambda s: s.split()).map(async_ordinal).to_list()
     write.join()
 run(read_from_file_object)
 
-def serve_with_netcat():
-    os.system(f"(echo a; echo b; echo c; sleep 1; echo d; echo e; echo f) | nc -lN localhost 8888")
-    # os.system(f"(echo -e 'a\nb\nc\n'; sleep 1; echo -e 'd\ne\nf\n') | nc -lN localhost 8888")
-
-server = Process(target=serve_with_netcat)
-server.start()
-
-async def read_from_tcp_socket():
-    reader, writer = await asyncio.open_connection('localhost', 8888)
-    s = DataStream.from_socket(reader)
-    result = await s.reduce(analyze_chunks, (0, set(), 0))
-    writer.close()
-    return result
-run(read_from_tcp_socket)
-
-server.join()
 
 
 
