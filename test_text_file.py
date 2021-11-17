@@ -65,7 +65,10 @@ print("\n\nasync pipe")
 with open(path) as file:
     count, length, types = 0, 0, set()
     print(repr(file))
-    for chunk in file:
+    print(repr(file.buffer.read))
+    print(repr(file.buffer.read1))
+    file.buffer.read = file.buffer.read1
+    for chunk in iter(lambda: file.read(), ''):
         print("Got chunk:", repr(chunk))
         count += 1
         length += len(chunk)
