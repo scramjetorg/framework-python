@@ -72,7 +72,7 @@ write = Process(target=write_to_pipe)
 write.start()
 
 with open(pipe_path, 'rb') as file:
-    for chunk in iter(lambda: file.read(), b''):
+    for chunk in iter(lambda: file.read1(), b''):
         print("Got chunk:", repr(chunk))
 
 write.join()
