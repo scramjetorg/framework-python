@@ -52,8 +52,3 @@ async def test_creating_stream_from_file_object():
     with open("sample_text_1.txt") as f:
         stream = DataStream.from_iterable(f)
         assert ['foo\n', 'bar baz\n', 'qux'] == await stream.to_list()
-
-@pytest.mark.asyncio
-async def test_creating_stream_from_file():
-    stream = DataStream.from_file('sample_text_1.txt')
-    assert [b'foo\nbar baz\nqux'] == await stream.to_list()
