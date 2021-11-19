@@ -62,6 +62,8 @@ class DataStream():
             await stream.ready_to_start
             while True:
                 chunk = reader.read(chunk_size)
+                if asyncio.iscoroutine(chunk):
+                    chunk = await chunk
                 if chunk == '' or chunk == b'':
                     break
                 await stream.pyfca.write(chunk)
