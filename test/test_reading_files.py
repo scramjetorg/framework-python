@@ -50,18 +50,21 @@ async def test_specifying_chunk_size_in_binary_mode():
         assert len(result[-1]) <= SIZE
 
 @pytest.mark.asyncio
-async def test_multibyte_chars_in_text_mode():
+async def test_chunk_size_with_multibyte_chars_in_text_mode():
     with open('sample_multibyte_text.txt') as file:
         individual_letters = [c for c in file.read()]
     with open('sample_multibyte_text.txt') as file:
+        # each chunk should be a complete unicode character
         result = await DataStream.read_from(file, chunk_size=1).to_list()
         assert result == individual_letters
 
 @pytest.mark.asyncio
-async def test_multibyte_chars_in_binary_mode():
+async def test_chunk_size_with_multibyte_chars_in_binary_mode():
     with open('sample_multibyte_text.txt') as file:
         individual_letters = [c for c in file.read()]
     with open('sample_multibyte_text.txt', 'rb') as file:
+        # with chunk_size=1 each byte should become separate chunk,
+        # yielding chunks that are not valid UTF.
         result = await DataStream.read_from(file, chunk_size=1).to_list()
         assert len(result) > len(individual_letters)
         with pytest.raises(UnicodeDecodeError):
