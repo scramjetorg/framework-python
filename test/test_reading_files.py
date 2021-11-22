@@ -50,6 +50,25 @@ async def test_specifying_chunk_size_in_binary_mode():
         assert len(result[-1]) <= SIZE
 
 @pytest.mark.asyncio
+async def test_multibyte_chars_in_text_mode():
+    with open('sample_multibyte_text.txt') as file:
+        individual_letters = [c for c in file.read()]
+    with open('sample_multibyte_text.txt') as file:
+        result = await DataStream.read_from(file, chunk_size=1).to_list()
+        assert result == individual_letters
+
+@pytest.mark.asyncio
+async def test_multibyte_chars_in_binary_mode():
+    with open('sample_multibyte_text.txt') as file:
+        individual_letters = [c for c in file.read()]
+    with open('sample_multibyte_text.txt', 'rb') as file:
+        result = await DataStream.read_from(file, chunk_size=1).to_list()
+        assert len(result) > len(individual_letters)
+        with pytest.raises(UnicodeDecodeError):
+            for chunk in result:
+                letter = chunk.decode("UTF-8")
+
+@pytest.mark.asyncio
 async def test_reading_large_file_in_chunks():
     path, fsize = test.large_test_files.file_with_newlines
     with open(path) as file:
