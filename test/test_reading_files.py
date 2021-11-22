@@ -92,6 +92,15 @@ async def test_source_without_read_should_not_use_chunk_size():
     with pytest.raises(UnsupportedOperation):
         result = DataStream.read_from([1, 2, 3, 4], chunk_size=2)
 
+@pytest.mark.asyncio
+async def test_non_iterable_source_without_chunk_size():
+    class Foo():
+        def read(self, how_many):
+            return "" + "foo"*how_many
+
+    with pytest.raises(UnsupportedOperation):
+        DataStream.read_from(Foo())
+
 
 # Run in a separate process to avoid influence on tested code
 class WriteInIntervals():
@@ -145,12 +154,12 @@ class ServeOverTCP():
         os.system(f'nc -lN localhost {self.port} < {self.path}')
 
 @pytest.mark.asyncio
-async def test_non_iterable_source_must_specify_chunk_size():
-    path, fsize = test.large_test_files.file_with_newlines
+async def test_reading_from_tcp_connection_without_chunk_size():
+    path = "sample_text_1.txt"
     with ServeOverTCP(path, 9999):
         reader, writer = await asyncio.open_connection('localhost', 9999)
-        with pytest.raises(UnsupportedOperation):
-            DataStream.read_from(reader)
+        result = await DataStream.read_from(reader).to_list()
+        assert result == [b'foo\n', b'bar baz\n', b'qux']
 
 @pytest.mark.asyncio
 async def test_reading_from_tcp_connection():

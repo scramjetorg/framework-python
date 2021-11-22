@@ -37,9 +37,11 @@ class DataStream():
         if chunk_size:
             if hasattr(source, 'read'):
                 return DataStream.from_reader(
-                    source, max_parallel=max_parallel, chunk_size=chunk_size)
+                    max_parallel, source.read, chunk_size)
         elif isinstance(source, Iterable):
             return DataStream.from_iterable(source, max_parallel=max_parallel)
+        elif hasattr(source, 'readline'):
+            return DataStream.from_reader(max_parallel, source.readline)
 
         raise UnsupportedOperation
 
@@ -56,13 +58,13 @@ class DataStream():
         return stream
 
     @staticmethod
-    def from_reader(reader, max_parallel=64, chunk_size=4096):
+    def from_reader(max_parallel, callback, *args):
         stream = DataStream(max_parallel)
 
         async def consume():
             await stream.ready_to_start
             while True:
-                chunk = reader.read(chunk_size)
+                chunk = callback(*args)
                 if asyncio.iscoroutine(chunk):
                     chunk = await chunk
                 if chunk == '' or chunk == b'':
