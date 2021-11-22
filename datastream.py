@@ -36,9 +36,10 @@ class DataStream():
     def read_from(source, max_parallel=64, chunk_size=None):
         if chunk_size:
             if hasattr(source, 'read'):
-                return DataStream.from_reader(source, chunk_size=chunk_size)
+                return DataStream.from_reader(
+                    source, max_parallel=max_parallel, chunk_size=chunk_size)
         elif isinstance(source, Iterable):
-            return DataStream.from_iterable(source)
+            return DataStream.from_iterable(source, max_parallel=max_parallel)
 
         raise UnsupportedOperation
 
