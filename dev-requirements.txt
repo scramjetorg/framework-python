@@ -2,3 +2,4 @@ coverage
 pytest
 pytest-asyncio
 aiofiles
+aiohttp
