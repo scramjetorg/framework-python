@@ -50,6 +50,7 @@ Transform a stream:
 
 Collect data from the stream (asynchronous):
 
+* `print` - print all stream chunks.
 * `to_list` - return a list with all stream chunks.
 * `write_to` - write all resulting stream chunks into a target.
 * `reduce` - combine all chunks using specified function.

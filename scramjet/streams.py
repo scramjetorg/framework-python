@@ -335,6 +335,16 @@ class DataStream():
         return target
 
 
+    async def print(self):
+        """Print all stream output as it is produced."""
+        self._mark_consumed()
+        self._uncork()
+        chunk = await self._pyfca.read()
+        while chunk is not None:
+            print(f'Chunk: {repr(chunk)}')
+            chunk = await self._pyfca.read()
+
+
     async def to_list(self):
         """Create a list with all resulting stream chunks."""
         self._mark_consumed()
