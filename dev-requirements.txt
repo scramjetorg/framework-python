@@ -2,3 +2,5 @@ coverage
 pytest
 pytest-asyncio
 aiofiles
+pyppeteer==1.0.2
+requests==2.27.1
