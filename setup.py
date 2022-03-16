@@ -11,7 +11,7 @@ setup(
     description='Scramjet is a simple reactive stream programming framework.',
     long_description_content_type="text/markdown",
     long_description=long_description,
-    packages=find_packages(),
+    packages=find_packages(exclude=["test"]),
     install_requires=[],
     keywords=['python', 'streams'],
     classifiers=[
