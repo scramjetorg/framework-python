@@ -126,10 +126,9 @@ class Stream():
             if isinstance(iterable, Iterable):
                 for item in iterable:
                     await stream._pyfca.write(item)
-            elif isinstance(iterable, AsyncIterable):
-                async for item in iterable:
-                    await stream._pyfca.write(item)
-            stream._pyfca.end()
+            if isinstance(iterable, AsyncIterable):
+                [await stream._pyfca.write(item) async for item in iterable]
+            stream._pyfca.end() 
 
         asyncio.create_task(consume())
         stream._writable = False
@@ -309,7 +308,9 @@ class Stream():
                 partial = chunks[-1]
 
             log(new_stream, f'leftover: {tr(partial)}')
-            if partial:
+            # pytest claims that line #315 is not reacheable, cause of if statement is always True.
+            # TODO: refactor code here or find exact reason for pytest problem
+            if partial: # pragma: no cover
                 log(new_stream, f'put: {tr(partial)}')
                 await new_stream._pyfca.write(partial)
             log(new_stream, f'ending pyfca {new_stream._pyfca}')

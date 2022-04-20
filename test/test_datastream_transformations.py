@@ -31,6 +31,14 @@ async def test_simple_filtering():
     assert result == [0, 2, 4, 6, 8, 10]
 
 @pytest.mark.asyncio
+async def test_simple_filtering_with_args():
+    stream = Stream.from_iterable(range(12))
+    def foo(x, *args):
+        return x < sum(args)
+    result = await stream.filter(foo, 3, 5).to_list()
+    assert result == [0, 1, 2, 3, 4, 5, 6, 7]
+
+@pytest.mark.asyncio
 async def test_simple_mapping():
     stream = Stream.from_iterable(range(8))
     result = await stream.map(lambda x: x**2).to_list()

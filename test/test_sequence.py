@@ -34,3 +34,18 @@ async def test_sequencing_lists_into_batches():
     )
     print(result)
     assert result == [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+
+
+@pytest.mark.asyncio
+async def test_sequencing_text_into_lines_with_coroutine_sequencer():
+    data = ["foo\nbar", " ", "b", "az", "\nqux\n", "plox"]
+    async def sequencer(part, chunk):
+        return (part+chunk).split('\n')
+    result = await (
+        Stream
+            .from_iterable(data, max_parallel=2)
+            .sequence(sequencer, "")
+            .to_list()
+    )
+    print(result)
+    assert result == ['foo', 'bar baz', 'qux', 'plox']

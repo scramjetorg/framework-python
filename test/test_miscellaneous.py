@@ -92,3 +92,10 @@ async def test_use_method():
     stream = Stream.from_iterable(data, max_parallel=4)
     result = await stream.use(parse_and_square_even_dollars).to_list()
     assert result == ['$64', '$196', '$400', '$256']
+
+
+async def test_await_on_stream():
+    data = ['$8', '$25', '$3', '$14', '$20', '$9', '$13', '$16']
+    stream = Stream.from_iterable(data, max_parallel=4)
+    with pytest.raises(TypeError):
+        await stream
