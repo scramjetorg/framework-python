@@ -29,10 +29,25 @@ object streams, Scramjet is now being ported into Python. This is what is
 happening in this repository.
 
 >_Tested with Python 3.8.10 and Ubuntu 20.04._
+## Table of contents
+- [Installation](#installation)
+- [Usage](#usage)
+- [Requesting features](#requesting-features)
+- [Reporting bugs](#reporting-bugs)
+- [Contributing](#contributing)
+- [Development Setup](#development-setup)
 
+## Installation
 
-Getting started :construction_worker:
-----------------------
+Since this is a pre-release version it is not available as a pip package yet. However, it can be used in your `requirements.txt` file by referring to this git repository:
+
+```
+git+https://github.com/scramjetorg/framework-python#egg=scramjet_framework_python
+```
+
+After adding Scramjet Framework as dependency, it needs to be instaled via `pip`.
+
+## Usage
 
 Basic building block of Scramjet is the `Stream` class. It reads input in
 chunks, performs operations on these chunks and produces an iterable output
@@ -97,31 +112,65 @@ so you can run them simply with:
     python hello_datastream.py
 
 
-Running tests :chart_with_upwards_trend:
--------------
+## Requesting Features
 
-Create and activate a virtualenv:
+Anything missing? Or maybe there is something which would make using Scramjet Framework much easier or efficient? Don't hesitate to fill up a [new feature request](https://github.com/scramjetorg/framework-python/issues/new)! We really appreciate all feedback.
 
-    sudo apt install python3-virtualenv
-    virtualenv -p python3 venv
-    . venv/bin/activate
 
-Check Python version:
+## Reporting bugs
 
-    $ python --version
-    Python 3.8.10
+If you have found a bug, inconsistent or confusing behavior please fill up a [new bug report](https://github.com/scramjetorg/framework-python/issues/new).
 
-Install dependencies:
+## Contributing
 
-    pip install -r dev-requirements.txt
+You can contribute to this project by giving us feedback ([reporting bugs](#reporting-bugs) and [requesting features](#reporting-features)) and also by writing code yourself!
 
-Run test cases (with activated virtualenv):
+The easiest way is to [create a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of this repository and then [create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork) with all your changes. In most cases, you should branch from and target `main` branch.
 
-    pytest
+Please refer to [Development Setup](#development-setup) section on how to setup this project.
+
+## Development Setup
+
+1. Install Python3 interpreter on your computer. Refer to [official docs](https://wiki.python.org/moin/BeginnersGuide/Download).
+
+2. Install `git` version control system. Refer to [official docs](https://git-scm.com/downloads).
+
+3. Clone this repository:
+
+```bash
+git clone git@github.com:scramjetorg/framework-python.git
+```
+4. Create and activate a virtualenv:
+
+```bash
+sudo apt install python3-virtualenv
+virtualenv -p python3 venv
+.venv/bin/activate
+```
+
+5. Check Python version:
+
+```bash
+$ python --version
+Python 3.8.10
+```
+
+6. Install dependencies:
+
+```bash
+pip install -r dev-requirements.txt
+```
+
+7. Run test cases (with activated virtualenv):
+
+```bash
+pytest
+```
 
 > :bulb: **HINT:** add a filename if you want to limit which tests are run
 
-If you want to enable detailed debug logging, set one of the following env variables:
+
+8. If you want to enable detailed debug logging, set one of the following env variables:
 
 ```bash
 PYFCA_DEBUG=1       # debug pyfca
