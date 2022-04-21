@@ -49,3 +49,13 @@ async def test_calculating_average_with_reduce():
     result = sum/count
     print('average:', result)
     assert result == 4
+
+@pytest.mark.asyncio
+async def test_counting_items_with_reduce_with_coroutine_func():
+    data = ['a', 'b', 'c', 'd', 'e', 'f']
+    stream = Stream.from_iterable(data, max_parallel=4)
+    async def count(count, item):
+        return count + 1
+    result = await stream.reduce(count, 0)
+    print('count:', result)
+    assert result == 6

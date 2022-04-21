@@ -18,3 +18,13 @@ async def test_reading_and_writing_to_file():
         await Stream.read_from(file_in).write_to(file_out)
     with open('test/sample_text_1.txt') as source, open('test_output') as dest:
         assert source.read() == dest.read()
+
+
+@pytest.mark.asyncio
+async def test_reading_and_writing_to_file_with_coroutine():   
+    import aiofiles
+    async with aiofiles.open('test/sample_text_1.txt', mode='r') as file_in, \
+        aiofiles.open('test_output', mode='w') as file_out:
+        await Stream.read_from(file_in, chunk_size=2).write_to(file_out)
+    with open('test/sample_text_1.txt') as source, open('test_output') as dest:
+        assert source.read() == dest.read()

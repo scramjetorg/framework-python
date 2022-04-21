@@ -40,3 +40,12 @@ async def test_flattening_non_iterables_errors():
         if task.get_name() == 'flatmap-consumer':
             with pytest.raises(TypeError):
                 await task
+
+@pytest.mark.asyncio
+async def test_flattening_lists_with_coroutine():
+    async def split(string: str):
+        return string.split()
+    data = ["foo\nbar", "cork", "qux\nbarf ploxx\n", "baz"]
+    stream = Stream.from_iterable(data, max_parallel=1)
+    result = await stream.flatmap(split).to_list()
+    assert result == ['foo', 'bar', 'cork', 'qux', 'barf', 'ploxx', 'baz']
