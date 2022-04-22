@@ -14,7 +14,6 @@ Scramjet in Python
     <img src="https://assets.scramjet.org/images/framework-logo-256.svg" width="420" alt="Scramjet Framework">
 </p>
 
-
 Scramjet is a simple reactive stream programming framework. The code is written
 by chaining functions that transform the streamed data, including well known
 map, filter and reduce.
@@ -30,6 +29,7 @@ happening in this repository.
 
 >_Tested with Python 3.8.10 and Ubuntu 20.04._
 ## Table of contents
+
 - [Installation](#installation)
 - [Usage](#usage)
 - [Requesting features](#requesting-features)
@@ -41,8 +41,8 @@ happening in this repository.
 
 Since this is a pre-release version it is not available as a pip package yet. However, it can be used in your `requirements.txt` file by referring to this git repository:
 
-```
-git+https://github.com/scramjetorg/framework-python#egg=scramjet_framework_python
+```bash
+pip install scramjet-framework-py
 ```
 
 After adding Scramjet Framework as dependency, it needs to be instaled via `pip`.
@@ -109,13 +109,13 @@ You can find more examples in [`hello_datastream.py`](./hello_datastream.py)
 file. They don't require any additional dependencies, just the standard library,
 so you can run them simply with:
 
-    python hello_datastream.py
-
+```bash
+python hello_datastream.py
+```
 
 ## Requesting Features
 
 Anything missing? Or maybe there is something which would make using Scramjet Framework much easier or efficient? Don't hesitate to fill up a [new feature request](https://github.com/scramjetorg/framework-python/issues/new)! We really appreciate all feedback.
-
 
 ## Reporting bugs
 
