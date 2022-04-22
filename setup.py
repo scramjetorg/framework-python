@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="scramjet-framework-python",
+    name="scramjet-framework-py",
     version='0.1',
     author="Scramjet.org",
     author_email="<info@scramjet.org>",
