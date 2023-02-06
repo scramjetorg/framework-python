@@ -31,6 +31,7 @@ happening in this repository.
 ## Table of contents
 
 - [Installation](#installation)
+- [Quick start](#quick-start)
 - [Usage](#usage)
 - [Requesting features](#requesting-features)
 - [Reporting bugs](#reporting-bugs)
@@ -39,13 +40,55 @@ happening in this repository.
 
 ## Installation
 
-Since this is a pre-release version it is not available as a pip package yet. However, it can be used in your `requirements.txt` file by referring to this git repository:
+Scramjet Framework is available on PyPI, You can install it with simple pip command:
 
 ```bash
 pip install scramjet-framework-py
 ```
+## Quick start
 
-After adding Scramjet Framework as dependency, it needs to be instaled via `pip`.
+Let's say we have a `fruits.csv` file like this:
+
+```csv
+orange,sweet,1
+lemon,sour,2
+pigface,salty,5
+banana,sweet,3
+cranberries,bitter,6
+```
+
+and we want to write the names of the sweet fruits to a separate file.
+To do this, write an async function like this:
+
+
+```python
+
+from scramjet import streams
+import asyncio
+
+
+async def sweet_stream():
+    with open("fruits.csv") as file_in, open("sweet.txt", "w") as file_out:
+        await (
+            streams.Stream
+            .read_from(file_in)
+            .map(lambda line: line.split(','))
+            .filter(lambda record: record[1] == "sweet")
+            .map(lambda record: f"{record[0]}\n")
+            .write_to(file_out)
+        )
+
+asyncio.run(sweet_stream())
+```
+
+output saved in sweet.txt:
+
+```
+orange
+banana
+```
+
+and that's it!
 
 ## Usage
 
@@ -76,34 +119,6 @@ this: `some_stream.map(...).filter(...).batch(...)`
 
 Examples :books:
 --------
-
-Let's say we have a `fruits.csv` file like this:
-
-```csv
-orange,sweet,1
-lemon,sour,2
-pigface,salty,5
-banana,sweet,3
-cranberries,bitter,6
-```
-
-and we want to write the names of the sweet fruits to a separate file.
-To do this, write an async function like this:
-
-```python
-with open("misc/fruits.csv") as file_in, open("sweet.txt", "w") as file_out:
-    await (
-        Stream
-        .read_from(file_in)
-        .map(lambda line: line.split(','))
-        .filter(lambda record: record[1] == "sweet")
-        .map(lambda record: f"{record[0]}\n")
-        .write_to(file_out)
-    )
-```
-
-and that's it!
-
 
 You can find more examples in [`hello_datastream.py`](./hello_datastream.py)
 file. They don't require any additional dependencies, just the standard library,
