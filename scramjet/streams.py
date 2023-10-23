@@ -5,6 +5,8 @@ from os import environ
 import scramjet.utils as utils
 from collections.abc import Iterable, AsyncIterable
 import re
+import time
+import random
 
 DEBUG = 'DATASTREAM_DEBUG' in environ or 'SCRAMJET_DEBUG' in environ
 tr = utils.print_trimmed
@@ -33,6 +35,7 @@ class Stream():
         self._pyfca = upstream._pyfca if upstream else Pyfca(max_parallel)
         self._ready_to_start = asyncio.Future()
         self._sinks = []
+        self._uid = str(time.time()) + str(random.randint(1, 1000000))
         log(self, f'INIT stream created with pyfca {self._pyfca}')
 
     def __await__(self):
@@ -128,7 +131,7 @@ class Stream():
                     await stream._pyfca.write(item)
             if isinstance(iterable, AsyncIterable):
                 [await stream._pyfca.write(item) async for item in iterable]
-            stream._pyfca.end() 
+            stream._pyfca.end()
 
         asyncio.create_task(consume())
         stream._writable = False
@@ -319,7 +322,18 @@ class Stream():
         return new_stream
 
 
-    def pipe(self, target):
+    def unpipe(self, target=None):
+        """Remove a target from the current stream."""
+        if target in self._sinks:
+            self._sinks.remove(target)
+        if len(self._sinks) == 0:
+            task, = [task for task in asyncio.all_tasks() if task.get_name() == f'{self._uid}-pipe-consumer']
+            if task:
+                task.cancel()
+        return self
+
+
+    def pipe(self, target, end=True):
         """Forward all chunks from current stream into target."""
         self._consumed = True
         self._sinks.append(target)
@@ -331,10 +345,11 @@ class Stream():
                     break
                 drains = [target._pyfca.write(chunk) for target in self._sinks]
                 await asyncio.gather(*drains)
-            for target in self._sinks:
-                target._pyfca.end()
+            if end is True:
+                for target in self._sinks:
+                    target._pyfca.end()
         if len(self._sinks) == 1:
-            asyncio.create_task(consume(), name='pipe-consumer')
+            asyncio.create_task(consume(), name=f'{self._uid}-pipe-consumer')
         return target
 
 
